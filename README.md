@@ -10,7 +10,7 @@
 [![Groq API](https://img.shields.io/badge/AI-Groq%20LLaMA3-f97316?style=for-the-badge)](https://groq.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
-[**Live Demo**](https://ai-email-cleaner.vercel.app/) • [**Architecture**](docs/ARCHITECTURE.md) • [**System Design**](docs/SYSTEM_DESIGN.md) • [**Security**](docs/SECURITY.md)
+[**Live Demo**](https://ai-email-cleaner.vercel.app/) • [**Project Overview**](docs/PROJECT_OVERVIEW.md) • [**Architecture**](docs/ARCHITECTURE.md) • [**System Design**](docs/SYSTEM_DESIGN.md) • [**Security**](docs/SECURITY.md)
 
 </div>
 
