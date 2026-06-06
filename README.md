@@ -10,19 +10,23 @@
 [![Groq API](https://img.shields.io/badge/AI-Groq%20LLaMA3-f97316?style=for-the-badge)](https://groq.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
-[**Live Demo**](#) • [**Architecture**](docs/ARCHITECTURE.md) • [**System Design**](docs/SYSTEM_DESIGN.md) • [**Security**](docs/SECURITY.md)
+[**Live Demo**](https://ai-email-cleaner.vercel.app/) • [**Architecture**](docs/ARCHITECTURE.md) • [**System Design**](docs/SYSTEM_DESIGN.md) • [**Security**](docs/SECURITY.md)
 
 </div>
 
 <br />
 
-## ⚡ The Problem
+## 📖 Project Overview
+
+**AI Email Cleaner** is an intelligent assistant that securely connects to your Gmail via OAuth, reads the latest hundreds of emails, and uses a Large Language Model (Groq LLaMA-3.1 or Google Gemini) to categorize them in milliseconds. It targets high-volume clutter like Newsletters, Promotions, and Spam, calculating confidence scores and giving you a one-click dashboard to bulk archive or delete them.
+
+### ⚡ The Problem
 
 Modern email users accumulate thousands of low-value emails over time—newsletters, promotional blasts, and spam. While large language models (LLMs) can easily identify this clutter, granting an autonomous AI destructive access (the ability to delete emails) introduces severe security, privacy, and reliability concerns. 
 
 **How do we leverage AI for inbox zero without risking the accidental deletion of an invoice, a recruiter outreach, or a banking alert?**
 
-## 🎯 The Solution: Human-in-the-Loop Architecture
+### 🎯 The Solution: Human-in-the-Loop Architecture
 
 **AI Email Cleaner** solves the authorization and intelligence challenges by employing a **Recommendation-Based Workflow**. The AI acts as an incredibly fast analyst, processing batches of emails, determining a confidence score, and generating actionable insights. However, the system acts as an *assistant*, not an autonomous decision maker. Users review the recommendations and execute bulk actions with a single click.
 
@@ -61,6 +65,53 @@ For a deep dive into the engineering decisions, tradeoffs, and data flow, please
 * 📄 [**ARCHITECTURE.md**](docs/ARCHITECTURE.md) - Component design and data flow.
 * 📄 [**SYSTEM_DESIGN.md**](docs/SYSTEM_DESIGN.md) - Scalability, batching limits, and tradeoffs.
 * 📄 [**SECURITY.md**](docs/SECURITY.md) - Threat models, token encryption, and safe deletion.
+
+---
+
+## 🚀 Getting Started (Setup)
+
+Follow these instructions to run the project locally.
+
+### Prerequisites
+- Node.js 18+ and npm
+- A Google Cloud Console project (for OAuth Credentials)
+- A Supabase PostgreSQL Database (or local SQLite)
+- An API Key for Groq (or Google Gemini)
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/ansh35/AI_Email_Cleaner.git
+cd AI_Email_Cleaner
+npm install
+```
+
+### 2. Environment Variables
+Create a `.env` file in the root directory:
+```env
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[your-project].supabase.co:5432/postgres"
+
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="generate-a-random-secret"
+
+GOOGLE_CLIENT_ID="your-google-oauth-client-id"
+GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
+
+ENCRYPTION_KEY="generate-a-random-32-byte-hex"
+GROQ_API_KEY="your-groq-api-key"
+```
+
+### 3. Initialize Database
+Push the Prisma schema to your database and generate the client:
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+### 4. Run the Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to view the application!
 
 ---
 
