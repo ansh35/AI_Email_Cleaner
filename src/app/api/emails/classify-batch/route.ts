@@ -43,37 +43,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, processed: 0 });
   }
 
-  // Process concurrently using Promise.all
-  const classificationPromises = emailsToProcess.map(async (email) => {
-    try {
-      const result = await classifyEmail(email.subject, email.snippet, email.sender);
-      
-      if (result && result.category) {
-        return prisma.email.update({
-          where: { id: email.id },
-          data: {
-            category: result.category,
-            confidence: result.confidence || 0,
-            aiReason: result.reason || "Classified by AI",
-            classificationStatus: "CLASSIFIED"
-          }
-        });
-      } else {
-        return prisma.email.update({
+  // Process in chunks of 5 to respect Groq rate limits
+  const chunkSize = 5;
+  for (let i = 0; i < emailsToProcess.length; i += chunkSize) {
+    const chunk = emailsToProcess.slice(i, i + chunkSize);
+    
+    await Promise.all(chunk.map(async (email) => {
+      try {
+        const result = await classifyEmail(email.subject, email.snippet, email.sender);
+        
+        if (result && result.category) {
+          await prisma.email.update({
+            where: { id: email.id },
+            data: {
+              category: result.category,
+              confidence: result.confidence || 0,
+              aiReason: result.reason || "Classified by AI",
+              classificationStatus: "CLASSIFIED"
+            }
+          });
+        } else {
+          await prisma.email.update({
+            where: { id: email.id },
+            data: { classificationStatus: "FAILED" }
+          });
+        }
+      } catch (err) {
+        console.error(`Failed to classify email ${email.id}:`, err);
+        await prisma.email.update({
           where: { id: email.id },
           data: { classificationStatus: "FAILED" }
         });
       }
-    } catch (err) {
-      console.error(`Failed to classify email ${email.id}:`, err);
-      return prisma.email.update({
-        where: { id: email.id },
-        data: { classificationStatus: "FAILED" }
-      });
+    }));
+    
+    // Add a small delay between chunks to let the token bucket refill
+    if (i + chunkSize < emailsToProcess.length) {
+      await new Promise(resolve => setTimeout(resolve, 800));
     }
-  });
-
-  await Promise.all(classificationPromises);
+  }
 
   return NextResponse.json({ success: true, processed: emailsToProcess.length });
 }
