@@ -25,41 +25,65 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login");
 
-  // Aggregate stats
-  const total = await prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false } });
-  const important = await prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Important" } });
-  const promotions = await prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Promotion" } });
-  const newsletters = await prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Newsletter" } });
-  const spam = await prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Spam" } });
-  const personal = await prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Personal" } });
-  
-  // Unclassified emails are those where category is null or classificationStatus is not CLASSIFIED
-  const unclassified = await prisma.email.count({ 
-    where: { 
-      userId: user.id, 
-      isArchived: false, 
-      isTrashed: false, 
-      OR: [{ category: null }, { classificationStatus: "PENDING" }, { classificationStatus: "FAILED" }] 
-    } 
-  });
+  // Use prisma.$transaction to run all queries over a SINGLE database connection. 
+  // This prevents the Supabase connection pool from crashing!
+  const [
+    total,
+    important,
+    promotions,
+    newsletters,
+    spam,
+    personal,
+    unclassified,
+    emailsProcessed,
+    averageConfidenceResult,
+    preferences,
+    aggSpam,
+    sampleSpam,
+    aggNewsletter,
+    sampleNewsletter,
+    aggPromotion,
+    samplePromotion
+  ] = await prisma.$transaction([
+    prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false } }),
+    prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Important" } }),
+    prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Promotion" } }),
+    prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Newsletter" } }),
+    prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Spam" } }),
+    prisma.email.count({ where: { userId: user.id, isArchived: false, isTrashed: false, category: "Personal" } }),
+    prisma.email.count({ 
+      where: { 
+        userId: user.id, 
+        isArchived: false, 
+        isTrashed: false, 
+        OR: [{ category: null }, { classificationStatus: "PENDING" }, { classificationStatus: "FAILED" }] 
+      } 
+    }),
+    prisma.email.count({ where: { userId: user.id, classificationStatus: "CLASSIFIED" } }),
+    prisma.email.aggregate({
+      where: { userId: user.id, classificationStatus: "CLASSIFIED" },
+      _avg: { confidence: true }
+    }),
+    prisma.categoryPreference.findMany({ where: { userId: user.id } }),
+    
+    // AI Stats Spam
+    prisma.email.aggregate({ where: { userId: user.id, category: "Spam", isArchived: false, isTrashed: false, classificationStatus: "CLASSIFIED" }, _avg: { confidence: true } }),
+    prisma.email.findFirst({ where: { userId: user.id, category: "Spam", isArchived: false, isTrashed: false, aiReason: { not: null } }, select: { aiReason: true } }),
+    
+    // AI Stats Newsletter
+    prisma.email.aggregate({ where: { userId: user.id, category: "Newsletter", isArchived: false, isTrashed: false, classificationStatus: "CLASSIFIED" }, _avg: { confidence: true } }),
+    prisma.email.findFirst({ where: { userId: user.id, category: "Newsletter", isArchived: false, isTrashed: false, aiReason: { not: null } }, select: { aiReason: true } }),
+    
+    // AI Stats Promotion
+    prisma.email.aggregate({ where: { userId: user.id, category: "Promotion", isArchived: false, isTrashed: false, classificationStatus: "CLASSIFIED" }, _avg: { confidence: true } }),
+    prisma.email.findFirst({ where: { userId: user.id, category: "Promotion", isArchived: false, isTrashed: false, aiReason: { not: null } }, select: { aiReason: true } })
+  ]);
 
   const cleanupCandidates = promotions + newsletters + spam;
   const reductionPercentage = total > 0 ? Math.round((cleanupCandidates / total) * 100) : 0;
-  
-  // Stats for AI Analytics
-  const emailsProcessed = await prisma.email.count({ where: { userId: user.id, classificationStatus: "CLASSIFIED" } });
-  const averageConfidenceResult = await prisma.email.aggregate({
-    where: { userId: user.id, classificationStatus: "CLASSIFIED" },
-    _avg: { confidence: true }
-  });
   const avgConfidence = averageConfidenceResult._avg.confidence ? Math.round(averageConfidenceResult._avg.confidence * 100) : 0;
 
   const stats = { total, important, promotions, newsletters, spam, personal, unclassified, cleanupCandidates };
-
-  // Fetch Preferences
-  const preferences = await prisma.categoryPreference.findMany({
-    where: { userId: user.id }
-  });
 
   const prefsMap = {
     Spam: preferences.find(p => p.category === "Spam")?.action,
@@ -67,28 +91,19 @@ export default async function DashboardPage() {
     Promotion: preferences.find(p => p.category === "Promotion")?.action,
   };
 
-  // Fetch AI Stats per category
-  const getCategoryStats = async (categoryName: string) => {
-    const agg = await prisma.email.aggregate({
-      where: { userId: user.id, category: categoryName, isArchived: false, isTrashed: false, classificationStatus: "CLASSIFIED" },
-      _avg: { confidence: true },
-    });
-    
-    const sample = await prisma.email.findFirst({
-      where: { userId: user.id, category: categoryName, isArchived: false, isTrashed: false, aiReason: { not: null } },
-      select: { aiReason: true }
-    });
-
-    return {
-      avgConfidence: agg._avg.confidence ? Math.round(agg._avg.confidence * 100) : 0,
-      reason: sample?.aiReason || "Identified based on typical patterns."
-    };
-  };
-
   const aiDetails = {
-    Spam: await getCategoryStats("Spam"),
-    Newsletter: await getCategoryStats("Newsletter"),
-    Promotion: await getCategoryStats("Promotion"),
+    Spam: { 
+      avgConfidence: aggSpam._avg.confidence ? Math.round(aggSpam._avg.confidence * 100) : 0, 
+      reason: sampleSpam?.aiReason || "Identified based on typical patterns." 
+    },
+    Newsletter: { 
+      avgConfidence: aggNewsletter._avg.confidence ? Math.round(aggNewsletter._avg.confidence * 100) : 0, 
+      reason: sampleNewsletter?.aiReason || "Identified based on typical patterns." 
+    },
+    Promotion: { 
+      avgConfidence: aggPromotion._avg.confidence ? Math.round(aggPromotion._avg.confidence * 100) : 0, 
+      reason: samplePromotion?.aiReason || "Identified based on typical patterns." 
+    },
   };
 
   return (
