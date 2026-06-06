@@ -56,6 +56,41 @@ export default async function DashboardPage() {
 
   const stats = { total, important, promotions, newsletters, spam, personal, unclassified, cleanupCandidates };
 
+  // Fetch Preferences
+  const preferences = await prisma.categoryPreference.findMany({
+    where: { userId: user.id }
+  });
+
+  const prefsMap = {
+    Spam: preferences.find(p => p.category === "Spam")?.action,
+    Newsletter: preferences.find(p => p.category === "Newsletter")?.action,
+    Promotion: preferences.find(p => p.category === "Promotion")?.action,
+  };
+
+  // Fetch AI Stats per category
+  const getCategoryStats = async (categoryName: string) => {
+    const agg = await prisma.email.aggregate({
+      where: { userId: user.id, category: categoryName, isArchived: false, isTrashed: false, classificationStatus: "CLASSIFIED" },
+      _avg: { confidence: true },
+    });
+    
+    const sample = await prisma.email.findFirst({
+      where: { userId: user.id, category: categoryName, isArchived: false, isTrashed: false, aiReason: { not: null } },
+      select: { aiReason: true }
+    });
+
+    return {
+      avgConfidence: agg._avg.confidence ? Math.round(agg._avg.confidence * 100) : 0,
+      reason: sample?.aiReason || "Identified based on typical patterns."
+    };
+  };
+
+  const aiDetails = {
+    Spam: await getCategoryStats("Spam"),
+    Newsletter: await getCategoryStats("Newsletter"),
+    Promotion: await getCategoryStats("Promotion"),
+  };
+
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -67,19 +102,28 @@ export default async function DashboardPage() {
 
       <OverviewCards stats={stats} />
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <AIRecommendations stats={stats} reductionPercentage={reductionPercentage} />
-        <InboxHealth stats={stats} />
-        <AIStats 
-          emailsProcessed={emailsProcessed} 
-          avgConfidence={avgConfidence} 
-          removable={stats.cleanupCandidates} 
-        />
+      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
+        <div className="lg:col-span-1 h-full">
+          <AIRecommendations 
+            stats={stats} 
+            reductionPercentage={reductionPercentage} 
+            prefsMap={prefsMap}
+            aiDetails={aiDetails}
+          />
+        </div>
+        <div className="lg:col-span-2 flex flex-col justify-start space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <InboxHealth stats={stats} />
+            <AIStats 
+              emailsProcessed={emailsProcessed} 
+              avgConfidence={avgConfidence} 
+              removable={stats.cleanupCandidates} 
+            />
+          </div>
+          <WorkflowCard />
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
-        <WorkflowCard />
-      </div>
       
       {/* AI Weekly Report */}
       <WeeklyReport stats={stats} />

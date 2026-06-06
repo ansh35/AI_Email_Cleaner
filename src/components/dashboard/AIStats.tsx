@@ -15,7 +15,7 @@ export function AIStats({
   removable: number 
 }) {
   return (
-    <Card className="flex flex-col h-full bg-white/40 dark:bg-black/20 backdrop-blur-xl border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
+    <Card className="flex flex-col bg-white/40 dark:bg-black/20 backdrop-blur-xl border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
       <div className="absolute -z-10 top-1/2 left-1/2 w-full h-full bg-blue-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
       <CardHeader>
         <CardTitle className="flex items-center">
@@ -27,7 +27,7 @@ export function AIStats({
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-4">
+      <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/50 dark:bg-black/30 backdrop-blur-md border border-white/40 dark:border-white/10 p-3 rounded-xl flex flex-col justify-center shadow-sm hover:scale-105 transition-transform">
             <div className="flex items-center space-x-2 text-muted-foreground mb-1">

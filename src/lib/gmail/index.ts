@@ -42,6 +42,7 @@ export async function syncRecentEmails(userId: string, limit = 50) {
   });
 
   const messages = res.data.messages || [];
+  let syncedCount = 0;
   
   for (const msg of messages) {
     if (!msg.id) continue;
@@ -54,7 +55,10 @@ export async function syncRecentEmails(userId: string, limit = 50) {
     if (existing) continue; // Skip if already synced
 
     await syncSingleEmail(userId, msg.id, gmail);
+    syncedCount++;
   }
+
+  return syncedCount;
 }
 
 async function syncSingleEmail(userId: string, messageId: string, gmailClient?: any) {

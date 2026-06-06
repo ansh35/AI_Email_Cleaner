@@ -51,10 +51,8 @@ export async function POST(req: Req) {
   if (!user) return Res.json({ error: "User not found" }, { status: 404 });
 
   try {
-    await syncRecentEmails(user.id, 100);
-    // Trigger background queue
-    triggerBackgroundClassification();
-    return Res.json({ success: true });
+    const fetchedCount = await syncRecentEmails(user.id, 100);
+    return Res.json({ success: true, count: fetchedCount });
   } catch (error: any) {
     return Res.json({ error: error.message }, { status: 500 });
   }

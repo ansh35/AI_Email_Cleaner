@@ -17,62 +17,70 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { target } = body; // "Spam", "Promotion", "Newsletter", or undefined for all
+    const { actions, rememberPreference } = body;
 
-    let emailsToArchive: any[] = [];
-    let emailsToTrash: any[] = [];
-
-    if (!target || target === "Promotion" || target === "Newsletter") {
-      emailsToArchive = await prisma.email.findMany({
-        where: {
-          userId: user.id,
-          isArchived: false,
-          isTrashed: false,
-          category: target ? target : { in: ["Promotion", "Newsletter"] }
-        }
-      });
+    if (!actions) {
+      return NextResponse.json({ error: "No actions provided" }, { status: 400 });
     }
 
-    if (!target || target === "Spam") {
-      emailsToTrash = await prisma.email.findMany({
-        where: {
-          userId: user.id,
-          isArchived: false,
-          isTrashed: false,
-          category: "Spam"
-        }
-      });
-    }
-
-    // We process them sequentially (or we could use Promise.all)
-    // Note: If there are many, we might hit Google API limits, but for demo we do sequentially
-    let archivedCount = 0;
-    for (const email of emailsToArchive) {
-      try {
-        await archiveEmail(user.id, email.gmailId);
-        await logAction(user.id, "BULK_ARCHIVE", email.id);
-        await prisma.email.update({
-          where: { id: email.id },
-          data: { isArchived: true }
+    // Save preferences if requested
+    if (rememberPreference) {
+      for (const [category, action] of Object.entries(actions)) {
+        await prisma.categoryPreference.upsert({
+          where: {
+            userId_category: {
+              userId: user.id,
+              category: category,
+            }
+          },
+          update: { action: action as string },
+          create: {
+            userId: user.id,
+            category: category,
+            action: action as string
+          }
         });
-        archivedCount++;
-      } catch (e) {
-        console.error(`Failed to archive email ${email.id}:`, e);
       }
     }
 
+    let archivedCount = 0;
     let trashedCount = 0;
-    for (const email of emailsToTrash) {
-      try {
-        await trashEmail(user.id, email.gmailId);
-        await logAction(user.id, "BULK_TRASH", email.id);
-        await prisma.email.update({
-          where: { id: email.id },
-          data: { isTrashed: true }
-        });
-        trashedCount++;
-      } catch (e) {
-        console.error(`Failed to trash email ${email.id}:`, e);
+
+    // Process each category
+    for (const [category, action] of Object.entries(actions)) {
+      if (action === "KEEP") continue;
+
+      const emailsToProcess = await prisma.email.findMany({
+        where: {
+          userId: user.id,
+          isArchived: false,
+          isTrashed: false,
+          category: category
+        }
+      });
+
+      for (const email of emailsToProcess) {
+        try {
+          if (action === "ARCHIVE") {
+            await archiveEmail(user.id, email.gmailId);
+            await logAction(user.id, "BULK_ARCHIVE", email.id);
+            await prisma.email.update({
+              where: { id: email.id },
+              data: { isArchived: true }
+            });
+            archivedCount++;
+          } else if (action === "DELETE") {
+            await trashEmail(user.id, email.gmailId);
+            await logAction(user.id, "BULK_TRASH", email.id);
+            await prisma.email.update({
+              where: { id: email.id },
+              data: { isTrashed: true }
+            });
+            trashedCount++;
+          }
+        } catch (e) {
+          console.error(`Failed to ${action} email ${email.id}:`, e);
+        }
       }
     }
 

@@ -26,7 +26,7 @@ export function InboxHealth({ stats }: { stats: any }) {
   }
 
   return (
-    <Card className="flex flex-col h-full bg-white/40 dark:bg-black/20 backdrop-blur-xl border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
+    <Card className="flex flex-col bg-white/40 dark:bg-black/20 backdrop-blur-xl border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
       <div className="absolute -z-10 bottom-0 left-0 w-64 h-64 bg-green-500/10 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
       <CardHeader>
         <CardTitle className="flex items-center">
@@ -38,7 +38,7 @@ export function InboxHealth({ stats }: { stats: any }) {
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="flex-1 flex flex-col justify-center space-y-6">
+      <CardContent className="flex flex-col justify-center space-y-6">
         <div className="flex flex-col items-center justify-center">
           <div className="text-5xl font-bold mb-2">
             {healthScore}<span className="text-2xl text-muted-foreground">%</span>
