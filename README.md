@@ -10,7 +10,7 @@
 [![Groq API](https://img.shields.io/badge/AI-Groq%20LLaMA3-f97316?style=for-the-badge)](https://groq.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
-[**Live Demo**](#) • [**Architecture**](ARCHITECTURE.md) • [**System Design**](SYSTEM_DESIGN.md) • [**Security**](SECURITY.md)
+[**Live Demo**](#) • [**Architecture**](docs/ARCHITECTURE.md) • [**System Design**](docs/SYSTEM_DESIGN.md) • [**Security**](docs/SECURITY.md)
 
 </div>
 
@@ -58,9 +58,9 @@ The application is built on a modern, highly scalable stack optimized for rapid 
 * **Authentication:** NextAuth.js (Google Provider)
 
 For a deep dive into the engineering decisions, tradeoffs, and data flow, please review the extensive documentation:
-* 📄 [**ARCHITECTURE.md**](./ARCHITECTURE.md) - Component design and data flow.
-* 📄 [**SYSTEM_DESIGN.md**](./SYSTEM_DESIGN.md) - Scalability, batching limits, and tradeoffs.
-* 📄 [**SECURITY.md**](./SECURITY.md) - Threat models, token encryption, and safe deletion.
+* 📄 [**ARCHITECTURE.md**](docs/ARCHITECTURE.md) - Component design and data flow.
+* 📄 [**SYSTEM_DESIGN.md**](docs/SYSTEM_DESIGN.md) - Scalability, batching limits, and tradeoffs.
+* 📄 [**SECURITY.md**](docs/SECURITY.md) - Threat models, token encryption, and safe deletion.
 
 ---
 
