@@ -78,7 +78,7 @@ export function AIRecommendations({ stats, reductionPercentage, prefsMap, aiDeta
           </div>
           <Select 
             value={selections[category]} 
-            onValueChange={(val: ActionType) => setSelections(s => ({ ...s, [category]: val }))}
+            onValueChange={(val) => setSelections(s => ({ ...s, [category]: val as ActionType }))}
           >
             <SelectTrigger className="w-[120px] h-8 text-xs bg-background/50">
               <SelectValue />
