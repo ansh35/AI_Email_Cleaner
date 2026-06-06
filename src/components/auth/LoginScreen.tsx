@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Mail } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function LoginPage() {
+export function LoginScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 relative overflow-hidden text-foreground">
       {/* Background Orbs */}
@@ -25,7 +25,7 @@ export default function LoginPage() {
             <div className="bg-white/50 dark:bg-white/10 p-4 rounded-2xl mb-4 shadow-inner border border-white/20 dark:border-white/5">
               <Mail className="w-8 h-8 text-primary drop-shadow-md" />
             </div>
-            <CardTitle className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60 pb-1">Welcome back</CardTitle>
+            <CardTitle className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60 pb-1">AI Email Cleaner</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Login with your Google account to manage your inbox
             </CardDescription>
