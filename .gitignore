@@ -50,3 +50,6 @@ next-env.d.ts
 # AI / IDE
 AGENTS.md
 CLAUDE.md
+
+# Custom Scripts
+/scripts/
