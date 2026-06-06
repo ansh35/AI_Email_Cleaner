@@ -1,65 +1,88 @@
-import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Mail, Shield, Zap } from "lucide-react";
+import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function LandingPage() {
+  const session = await getServerSession(authOptions);
+
+  if (session) {
+    redirect("/dashboard");
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="flex min-h-screen flex-col relative overflow-hidden bg-background text-foreground">
+      {/* Background Orbs */}
+      <div className="absolute -z-10 top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px] pointer-events-none"></div>
+      <div className="absolute -z-10 bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px] pointer-events-none"></div>
+      <header className="px-4 lg:px-6 h-16 flex items-center border-b border-white/10 bg-white/5 dark:bg-black/10 backdrop-blur-xl z-50">
+        <Link className="flex items-center justify-center gap-2 group" href="/">
+          <div className="bg-primary/20 p-1.5 rounded-lg group-hover:bg-primary/30 transition-colors">
+            <Mail className="h-5 w-5 text-primary" />
+          </div>
+          <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">AI Email Cleaner</span>
+        </Link>
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          <Link href="/login">
+            <Button variant="ghost" className="hover:bg-white/10 rounded-xl transition-all">Login</Button>
+          </Link>
+        </nav>
+      </header>
+      <main className="flex-1">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex justify-center">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/50 pb-2">
+                  Take back control of your inbox
+                </h1>
+                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                  Automatically categorize your emails with AI. Find what matters, archive the rest. Clean your inbox in seconds, not hours.
+                </p>
+              </div>
+              <div className="space-x-4 pt-8">
+                <Link href="/login">
+                  <Button size="lg" className="h-14 px-8 text-lg rounded-2xl transition-all hover:scale-105 shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)] dark:shadow-[0_0_40px_-10px_rgba(255,255,255,0.1)]">
+                    Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32 flex justify-center border-t border-white/10 bg-white/5 dark:bg-black/5 backdrop-blur-sm relative">
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-col items-center space-y-4 text-center bg-white/10 dark:bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-md shadow-sm hover:scale-105 transition-transform duration-500">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/20 shadow-inner">
+                  <Zap className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">Lightning Fast</h3>
+                <p className="text-muted-foreground">Powered by Groq AI, classify thousands of emails in seconds.</p>
+              </div>
+              <div className="flex flex-col items-center space-y-4 text-center bg-white/10 dark:bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-md shadow-sm hover:scale-105 transition-transform duration-500">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/20 shadow-inner">
+                  <Shield className="h-8 w-8 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold">Secure & Private</h3>
+                <p className="text-muted-foreground">Tokens are encrypted. We only request read and modify permissions, no password sharing.</p>
+              </div>
+              <div className="flex flex-col items-center space-y-4 text-center bg-white/10 dark:bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-md shadow-sm hover:scale-105 transition-transform duration-500">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/20 shadow-inner">
+                  <Mail className="h-8 w-8 text-purple-500" />
+                </div>
+                <h3 className="text-xl font-bold">Bulk Actions</h3>
+                <p className="text-muted-foreground">Archive or trash hundreds of promotional emails with a single click.</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t border-white/10 bg-background/50 backdrop-blur-md">
+        <p className="text-xs text-muted-foreground">© 2026 AI Email Cleaner. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
